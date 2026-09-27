@@ -1,11 +1,11 @@
 # jev-router
 
-[![npm version](https://img.shields.io/npm/v/@abishek0070/jev-model-router.svg)](https://www.npmjs.com/package/@abishek0070/jev-model-router)
+[![npm version](https://img.shields.io/npm/v/@abishek0070/jev-router.svg)](https://www.npmjs.com/package/@abishek0070/jev-router)
 [![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 
 ```bash
-npx @abishek0070/jev-model-router init
-npx @abishek0070/jev-model-router start
+npx @abishek0070/jev-router init
+npx @abishek0070/jev-router start
 ```
 
 Open-source production model router where **JEV decides what level of model capability a request needs. The policy engine decides which models are acceptable, and the scoring engine chooses the actual model based on application constraints.**
@@ -17,9 +17,9 @@ JEV never selects a provider or model directly — it returns a routing tier (`f
 **From npm (easiest):**
 
 ```bash
-npx @abishek0070/jev-model-router init   # creates jev-router.config.yaml + .env, asks for JEV key
+npx @abishek0070/jev-router init   # creates jev-router.config.yaml + .env, asks for JEV key
 # add one LLM key to .env, then:
-npx @abishek0070/jev-model-router start  # gateway on http://localhost:4000/v1
+npx @abishek0070/jev-router start  # gateway on http://localhost:4000/v1
 ```
 
 **From source:**
@@ -187,13 +187,13 @@ await client.messages.create({ model: "auto", max_tokens: 512, messages: [...] }
 **Option B — inside your app (in-process, Node.js).**
 
 ```bash
-npm install @abishek0070/jev-model-router
+npm install @abishek0070/jev-router
 ```
 
 No HTTP hop, no separate process. Same pipeline, shared exact cache. Your app owns auth/TLS/scaling.
 
 ```ts
-import { createRouter } from "@abishek0070/jev-model-router";
+import { createRouter } from "@abishek0070/jev-router";
 
 const router = await createRouter({
   env: { JEV_API_KEY: process.env.JEV_API_KEY }, // or rely on .env / shell env

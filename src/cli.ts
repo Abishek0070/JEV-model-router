@@ -5,8 +5,8 @@ import readline from "node:readline";
 
 // jev-model-router CLI: `init` scaffolds config, `start` runs the gateway.
 // Usage:
-//   npx @abishek0070/jev-model-router init [--config ./jev-router.config.yaml]
-//   npx @abishek0070/jev-model-router start [--port 4000] [--config ./jev-router.config.yaml]
+//   npx @abishek0070/jev-router init [--config ./jev-router.config.yaml]
+//   npx @abishek0070/jev-router start [--port 4000] [--config ./jev-router.config.yaml]
 
 function arg(name: string): string | undefined {
   const i = process.argv.indexOf(name);
@@ -53,7 +53,7 @@ async function init(): Promise<void> {
   console.log(`wrote ${envPath}`);
   console.log("\nNext:");
   console.log("  1. Add one LLM key to .env (OPENAI_API_KEY, ANTHROPIC_API_KEY, GEMINI_API_KEY, GROQ_API_KEY) or run Ollama.");
-  console.log("  2. npx @abishek0070/jev-model-router start");
+  console.log("  2. npx @abishek0070/jev-router start");
   console.log("  3. Verify routing (no LLM spend): POST /v1/routing/decision");
 }
 
