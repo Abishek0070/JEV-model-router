@@ -1,6 +1,6 @@
 {
   "name": "jevrouter-ai",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Open-source production JEV model router. JEV decides the capability tier (fast/balanced/powerful); policy + scoring choose the model. Use as a gateway or embed in-process.",
   "type": "commonjs",
   "license": "MIT",

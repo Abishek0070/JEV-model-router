@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>jevrouter-ai — Route Intelligence for the Model Age</title>
+<meta name="description" content="Open-source production JEV model router. JEV decides the capability tier; policy + scoring choose the model." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Monoton&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --void: #06060f;
+    --panel: #0b0b1c;
+    --panel-2: #101026;
+    --magenta: #ff2fb3;
+    --cyan: #27f5ff;
+    --amber: #ffb02e;
+    --phosphor: #7dff6a;
+    --violet: #8b5cf6;
+    --ink: #e8e6ff;
+    --dim: #8f8cb8;
+    --line: rgba(39, 245, 255, 0.22);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--void);
+    color: var(--ink);
+    font-family: "Space Mono", monospace;
+    overflow-x: hidden;
+    line-height: 1.6;
+  }
+  ::selection { background: var(--magenta); color: #000; }
+
+  /* ---------- CRT scanlines + vignette ---------- */
+  .crt::before {
+    content: "";
+    position: fixed; inset: 0;
+    background: repeating-linear-gradient(to bottom, transparent 0 2px, rgba(0,0,0,0.22) 2px 4px);
+    pointer-events: none; z-index: 60; mix-blend-mode: multiply;
+  }
+  .crt::after {
+    content: "";
+    position: fixed; inset: 0;
+    background: radial-gradient(ellipse at center, transparent 55%, rgba(2,2,10,0.75) 100%);
+    pointer-events: none; z-index: 61;
+  }
+
+  /* ---------- starfield ---------- */
+  .stars, .stars2 {
+    position: fixed; inset: -50%; z-index: 0; pointer-events: none;
+    background-image:
+      radial-gradient(1px 1px at 12% 22%, #fff 100%, transparent 0),
+      radial-gradient(1px 1px at 68% 8%, var(--cyan) 100%, transparent 0),
+      radial-gradient(2px 2px at 34% 64%, #fff 100%, transparent 0),
+      radial-gradient(1px 1px at 82% 44%, var(--magenta) 100%, transparent 0),
+      radial-gradient(1px 1px at 48% 30%, #fff 100%, transparent 0),
+      radial-gradient(2px 2px at 90% 78%, var(--amber) 100%, transparent 0),
+      radial-gradient(1px 1px at 22% 84%, #fff 100%, transparent 0),
+      radial-gradient(1px 1px at 58% 90%, var(--cyan) 100%, transparent 0);
+    background-size: 900px 900px;
+    animation: drift 140s linear infinite;
+  }
+  .stars2 { background-size: 1400px 1400px; animation-duration: 220s; opacity: 0.6; }
+  @keyframes drift { to { transform: translate3d(300px, 150px, 0); } }
+
+  /* ---------- synthwave sun ---------- */
+  .sun {
+    position: fixed; left: 50%; top: 6vh; width: 46vmin; height: 46vmin;
+    transform: translateX(-50%); z-index: 0; pointer-events: none;
+    border-radius: 50%;
+    background: linear-gradient(to bottom, var(--amber) 0%, var(--magenta) 62%, #7a1fa2 100%);
+    box-shadow: 0 0 90px rgba(255,47,179,0.55), 0 0 220px rgba(255,47,179,0.25);
+    -webkit-mask-image: linear-gradient(to bottom, #000 62%, transparent 96%);
+    mask-image: linear-gradient(to bottom, #000 62%, transparent 96%);
+  }
+  .sun::after {
+    content: ""; position: absolute; inset: 0; border-radius: 50%;
+    background: repeating-linear-gradient(to bottom, transparent 0 14px, var(--void) 14px 18px);
+    opacity: 0.85;
+  }
+
+  /* ---------- perspective grid floor ---------- */
+  .gridfloor {
+    position: fixed; left: -25%; right: -25%; bottom: -6%; height: 46vh; z-index: 0;
+    pointer-events: none; transform: perspective(420px) rotateX(62deg); transform-origin: top;
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 56px 56px;
+    animation: gridmove 2.6s linear infinite;
+    -webkit-mask-image: linear-gradient(to bottom, transparent, #000 30%);
+    mask-image: linear-gradient(to bottom, transparent, #000 30%);
+  }
+  @keyframes gridmove { to { background-position-y: 56px; } }
+
+  .wrap { position: relative; z-index: 2; max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+
+  /* ---------- nav ---------- */
+  nav {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 22px 0; border-bottom: 1px solid var(--line);
+  }
+  .brand { font-family: "Monoton", cursive; font-size: 1.35rem; color: var(--cyan);
+    text-shadow: 0 0 12px rgba(39,245,255,0.8); letter-spacing: 1px; }
+  .brand em { font-style: normal; color: var(--magenta); text-shadow: 0 0 12px rgba(255,47,179,0.8); }
+  .navlinks { display: flex; gap: 22px; font-size: 0.82rem; }
+  .navlinks a { color: var(--dim); text-decoration: none; letter-spacing: 1px; }
+  .navlinks a:hover { color: var(--cyan); text-shadow: 0 0 8px var(--cyan); }
+
+  /* ---------- hero ---------- */
+  header { text-align: center; padding: 11vh 0 7vh; }
+  .kicker {
+    display: inline-block; font-size: 0.78rem; letter-spacing: 4px; color: var(--amber);
+    border: 1px solid rgba(255,176,46,0.5); padding: 6px 18px; border-radius: 999px;
+    text-transform: uppercase; box-shadow: 0 0 18px rgba(255,176,46,0.25) inset;
+    animation: rise 0.9s ease both;
+  }
+  h1 {
+    font-family: "Monoton", cursive; font-weight: 400;
+    font-size: clamp(3rem, 10vw, 7rem); line-height: 1.05; margin: 26px 0 8px;
+    color: #fff;
+    text-shadow: 0 0 8px #fff, 0 0 28px var(--magenta), 0 0 80px var(--magenta);
+    animation: flicker 6s linear infinite, rise 0.9s 0.1s ease both;
+  }
+  h1 .cy { text-shadow: 0 0 8px #fff, 0 0 28px var(--cyan), 0 0 80px var(--cyan); }
+  @keyframes flicker {
+    0%, 100% { opacity: 1; } 3% { opacity: 0.86; } 5% { opacity: 1; }
+    42% { opacity: 1; } 43% { opacity: 0.7; } 44% { opacity: 1; } 78% { opacity: 0.94; } 79% { opacity: 1; }
+  }
+  @keyframes rise { from { opacity: 0; transform: translateY(26px); } to { opacity: 1; transform: none; } }
+  .tagline { color: var(--dim); max-width: 640px; margin: 0 auto; font-size: 1rem; animation: rise 0.9s 0.2s ease both; }
+  .tagline strong { color: var(--ink); }
+  .cta { display: flex; gap: 16px; justify-content: center; margin-top: 34px; flex-wrap: wrap; animation: rise 0.9s 0.3s ease both; }
+  .btn {
+    font-family: inherit; font-size: 0.9rem; letter-spacing: 1px; text-decoration: none;
+    padding: 13px 28px; border-radius: 4px; transition: transform 0.15s ease, box-shadow 0.2s ease;
+    clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+  }
+  .btn:hover { transform: translateY(-2px); }
+  .btn-npm { background: var(--magenta); color: #0a0018; font-weight: 700; box-shadow: 0 0 26px rgba(255,47,179,0.55); }
+  .btn-npm:hover { box-shadow: 0 0 44px rgba(255,47,179,0.85); }
+  .btn-gh { background: transparent; color: var(--cyan); border: 1px solid var(--cyan); box-shadow: 0 0 18px rgba(39,245,255,0.25) inset; }
+  .btn-gh:hover { box-shadow: 0 0 30px rgba(39,245,255,0.5); background: rgba(39,245,255,0.08); }
+  .ver { margin-top: 18px; font-size: 0.78rem; color: var(--dim); letter-spacing: 2px; }
+
+  /* ---------- ticker ---------- */
+  .ticker { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+    overflow: hidden; white-space: nowrap; margin: 20px 0 0; background: rgba(11,11,28,0.7); }
+  .ticker span { display: inline-block; padding: 10px 0; font-size: 0.8rem; letter-spacing: 3px;
+    color: var(--phosphor); text-shadow: 0 0 8px rgba(125,255,106,0.6); animation: tick 26s linear infinite; }
+  @keyframes tick { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+  /* ---------- sections ---------- */
+  section { padding: 72px 0 8px; }
+  .sec-label { font-size: 0.75rem; letter-spacing: 5px; color: var(--magenta); text-transform: uppercase;
+    text-shadow: 0 0 10px rgba(255,47,179,0.6); }
+  h2 { font-size: clamp(1.5rem, 4vw, 2.3rem); margin: 10px 0 14px; color: #fff;
+    text-shadow: 0 0 18px rgba(39,245,255,0.45); font-weight: 700; }
+  .lede { color: var(--dim); max-width: 680px; }
+
+  .reveal { opacity: 0; transform: translateY(28px); transition: opacity 0.7s ease, transform 0.7s ease; }
+  .reveal.on { opacity: 1; transform: none; }
+
+  /* ---------- terminal ---------- */
+  .term {
+    margin-top: 28px; background: rgba(5,5,16,0.92); border: 1px solid var(--line);
+    border-radius: 8px; overflow: hidden; box-shadow: 0 0 40px rgba(39,245,255,0.12);
+  }
+  .term-bar { display: flex; gap: 8px; align-items: center; padding: 10px 14px;
+    background: var(--panel-2); border-bottom: 1px solid var(--line); }
+  .dot { width: 11px; height: 11px; border-radius: 50%; }
+  .term-bar small { margin-left: 8px; color: var(--dim); font-size: 0.72rem; letter-spacing: 2px; }
+  .term-body { padding: 20px 22px; font-size: 0.92rem; }
+  .term-body .p { color: var(--phosphor); }
+  .term-body .c { color: var(--dim); }
+  .cmd { display: flex; justify-content: space-between; align-items: center; gap: 12px;
+    padding: 7px 0; border-bottom: 1px dashed rgba(143,140,184,0.2); }
+  .cmd:last-child { border-bottom: none; }
+  .cmd code { color: var(--ink); word-break: break-all; }
+  .cmd code .cm { color: var(--dim); }
+  .copy {
+    flex-shrink: 0; font-family: inherit; font-size: 0.7rem; letter-spacing: 1px; cursor: pointer;
+    background: transparent; color: var(--amber); border: 1px solid rgba(255,176,46,0.55);
+    padding: 4px 12px; border-radius: 3px; transition: all 0.15s ease;
+  }
+  .copy:hover { background: rgba(255,176,46,0.14); box-shadow: 0 0 12px rgba(255,176,46,0.4); }
+  .cursor { display: inline-block; width: 9px; height: 1.1em; background: var(--phosphor);
+    vertical-align: text-bottom; animation: blink 1s steps(1) infinite; box-shadow: 0 0 8px var(--phosphor); }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  /* ---------- tiers ---------- */
+  .tiers { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-top: 30px; }
+  .tier {
+    background: linear-gradient(160deg, var(--panel) 0%, rgba(16,16,38,0.6) 100%);
+    border: 1px solid var(--line); border-radius: 8px; padding: 26px 24px; position: relative;
+    transition: transform 0.2s ease, box-shadow 0.25s ease; overflow: hidden;
+  }
+  .tier:hover { transform: translateY(-5px); }
+  .tier::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+  .tier.fast::before { background: var(--phosphor); box-shadow: 0 0 14px var(--phosphor); }
+  .tier.balanced::before { background: var(--cyan); box-shadow: 0 0 14px var(--cyan); }
+  .tier.powerful::before { background: var(--magenta); box-shadow: 0 0 14px var(--magenta); }
+  .tier.fast:hover { box-shadow: 0 12px 44px rgba(125,255,106,0.22); }
+  .tier.balanced:hover { box-shadow: 0 12px 44px rgba(39,245,255,0.25); }
+  .tier.powerful:hover { box-shadow: 0 12px 44px rgba(255,47,179,0.3); }
+  .tier h3 { font-size: 1.5rem; letter-spacing: 3px; margin-bottom: 6px; }
+  .tier.fast h3 { color: var(--phosphor); text-shadow: 0 0 12px rgba(125,255,106,0.6); }
+  .tier.balanced h3 { color: var(--cyan); text-shadow: 0 0 12px rgba(39,245,255,0.6); }
+  .tier.powerful h3 { color: var(--magenta); text-shadow: 0 0 12px rgba(255,47,179,0.6); }
+  .tier p { font-size: 0.85rem; color: var(--dim); }
+  .tier ul { list-style: none; margin-top: 14px; font-size: 0.82rem; }
+  .tier li { padding: 4px 0; color: var(--ink); }
+  .tier li::before { content: "▸ "; color: var(--amber); }
+
+  /* ---------- pipeline ---------- */
+  .pipe { margin-top: 30px; display: flex; flex-direction: column; gap: 0; }
+  .node {
+    display: grid; grid-template-columns: 44px 1fr; gap: 16px; padding: 16px 18px;
+    background: rgba(11,11,28,0.85); border: 1px solid var(--line); border-radius: 6px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  .node:hover { border-color: var(--magenta); box-shadow: 0 0 24px rgba(255,47,179,0.2); }
+  .node .n {
+    width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;
+    border: 1px solid var(--cyan); color: var(--cyan); border-radius: 50%;
+    font-weight: 700; box-shadow: 0 0 14px rgba(39,245,255,0.35); font-size: 0.9rem;
+  }
+  .node.jev .n { border-color: var(--magenta); color: var(--magenta); box-shadow: 0 0 14px rgba(255,47,179,0.45); }
+  .node b { color: #fff; letter-spacing: 1px; }
+  .node small { color: var(--dim); display: block; margin-top: 3px; font-size: 0.78rem; }
+  .node code { color: var(--amber); font-size: 0.78rem; }
+  .wire { width: 2px; height: 22px; margin-left: 39px;
+    background: linear-gradient(to bottom, var(--cyan), var(--magenta));
+    box-shadow: 0 0 8px rgba(39,245,255,0.6); }
+
+  /* ---------- endpoints + telemetry ---------- */
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 28px; }
+  @media (max-width: 760px) { .cols { grid-template-columns: 1fr; } }
+  .card { background: rgba(11,11,28,0.85); border: 1px solid var(--line); border-radius: 8px; padding: 22px; }
+  .card h4 { letter-spacing: 2px; font-size: 0.85rem; color: var(--amber); margin-bottom: 12px; }
+  .ep { font-size: 0.78rem; padding: 7px 0; border-bottom: 1px dashed rgba(143,140,184,0.2); }
+  .ep:last-child { border: none; }
+  .ep .m { display: inline-block; min-width: 52px; color: var(--phosphor); font-weight: 700; }
+  .ep .u { color: var(--ink); }
+  .ep .d { display: block; color: var(--dim); font-size: 0.72rem; margin-top: 2px; }
+  pre.json {
+    font-size: 0.74rem; overflow-x: auto; color: var(--ink); line-height: 1.7;
+    background: rgba(5,5,16,0.9); border: 1px solid rgba(255,176,46,0.25);
+    border-radius: 6px; padding: 18px;
+  }
+  pre.json .k { color: var(--cyan); } pre.json .s { color: var(--amber); }
+  pre.json .n { color: var(--magenta); } pre.json .b { color: var(--phosphor); }
+
+  /* ---------- stats strip ---------- */
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-top: 30px; }
+  .stat { text-align: center; padding: 20px 10px; border: 1px solid var(--line); border-radius: 8px;
+    background: rgba(11,11,28,0.7); }
+  .stat .v { font-size: 1.7rem; font-weight: 700; color: #fff; text-shadow: 0 0 16px var(--cyan); }
+  .stat .l { font-size: 0.7rem; letter-spacing: 2px; color: var(--dim); text-transform: uppercase; margin-top: 4px; }
+
+  footer { margin: 90px 0 0; border-top: 1px solid var(--line); padding: 34px 0 90px;
+    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 18px; }
+  footer p { font-size: 0.78rem; color: var(--dim); }
+  footer a { color: var(--cyan); text-decoration: none; }
+  footer a:hover { text-shadow: 0 0 8px var(--cyan); }
+  .flinks { display: flex; gap: 20px; font-size: 0.82rem; }
+</style>
+</head>
+<body class="crt">
+<div class="stars"></div>
+<div class="stars2"></div>
+<div class="sun"></div>
+<div class="gridfloor"></div>
+
+<div class="wrap">
+  <nav>
+    <div class="brand">JEV<em>ROUTER</em></div>
+    <div class="navlinks">
+      <a href="#install">INSTALL</a>
+      <a href="#tiers">TIERS</a>
+      <a href="#pipeline">PIPELINE</a>
+      <a href="#api">API</a>
+    </div>
+  </nav>
+
+  <header>
+    <span class="kicker">Open source &middot; MIT &middot; v0.3.0</span>
+    <h1>JEV<span class="cy">ROUTER</span></h1>
+    <p class="tagline">Production <strong>model routing with a brain</strong>. JEV decides what level of capability a request needs — <strong>fast, balanced, or powerful</strong> — then policy + scoring pick the actual model. Bring your keys. Point your app. Route everything.</p>
+    <div class="cta">
+      <a class="btn btn-npm" href="https://www.npmjs.com/package/jevrouter-ai" target="_blank" rel="noopener">◆ NPM PACKAGE</a>
+      <a class="btn btn-gh" href="https://github.com/Abishek0070/JEV-model-router" target="_blank" rel="noopener">◇ GITHUB REPO</a>
+    </div>
+    <p class="ver">SYS.BOOT // ROUTING INTELLIGENCE ONLINE</p>
+  </header>
+</div>
+
+<div class="ticker"><span>&nbsp;JEV DECIDES THE TIER ✦ POLICY DECIDES WHAT'S ALLOWED ✦ SCORING PICKS THE MODEL ✦ JEV DECIDES THE TIER ✦ POLICY DECIDES WHAT'S ALLOWED ✦ SCORING PICKS THE MODEL ✦&nbsp;</span></div>
+
+<div class="wrap">
+  <section id="install">
+    <div class="sec-label">// 01 — Install</div>
+    <h2>Two commands. Zero config.</h2>
+    <p class="lede">One JEV key unlocks intelligent routing. One LLM key unlocks generation. No keys at all? The local heuristic and mock provider keep you moving.</p>
+    <div class="term">
+      <div class="term-bar"><span class="dot" style="background:#ff5f57"></span><span class="dot" style="background:#febc2e"></span><span class="dot" style="background:#28c840"></span><small>operator@mainframe:~</small></div>
+      <div class="term-body">
+        <div class="cmd"><code><span class="p">$</span> npm i jevrouter-ai</code><button class="copy" data-cmd="npm i jevrouter-ai">COPY</button></div>
+        <div class="cmd"><code><span class="p">$</span> npx jevrouter-ai init <span class="cm"># scaffolds config + .env, asks for JEV key</span></code><button class="copy" data-cmd="npx jevrouter-ai init">COPY</button></div>
+        <div class="cmd"><code><span class="p">$</span> npx jevrouter-ai start <span class="cm"># gateway live on :4000/v1</span></code><button class="copy" data-cmd="npx jevrouter-ai start">COPY</button></div>
+        <div class="cmd"><code><span class="p">$</span> <span class="cursor"></span></code><span></span></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="tiers">
+    <div class="sec-label">// 02 — Routing tiers</div>
+    <h2>JEV thinks in tiers, not models.</h2>
+    <p class="lede">Every request gets a capability verdict with calibrated confidence. Low confidence escalates one tier automatically. Swap providers anytime — JEV never needs retraining.</p>
+    <div class="tiers">
+      <div class="tier fast">
+        <h3>FAST</h3>
+        <p>Greetings, summaries, simple lookups. Milliseconds matter more than muscle.</p>
+        <ul><li>groq-llama</li><li>gemini-flash</li></ul>
+      </div>
+      <div class="tier balanced">
+        <h3>BALANCED</h3>
+        <p>Debugging, refactors, everyday engineering. The workhorse tier.</p>
+        <ul><li>gpt-mini</li><li>claude-haiku</li></ul>
+      </div>
+      <div class="tier powerful">
+        <h3>POWERFUL</h3>
+        <p>Proofs, outages, distributed design. Reserve the frontier for the frontier.</p>
+        <ul><li>claude-sonnet</li><li>gpt-reasoning</li></ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="pipeline">
+    <div class="sec-label">// 03 — Pipeline</div>
+    <h2>Eight stages. Full telemetry.</h2>
+    <p class="lede">JEV latency is tracked per stage and reported separately — provider inference is never hidden inside routing numbers.</p>
+    <div class="pipe">
+      <div class="node"><div class="n">01</div><div><b>INGRESS</b><small>OpenAI <code>POST /v1/chat/completions</code> (stream + tools) · Anthropic <code>POST /v1/messages</code> · in-process <code>router.chat()</code></small></div></div>
+      <div class="wire"></div>
+      <div class="node"><div class="n">02</div><div><b>EXACT CACHE</b><small>SHA-256 over messages + params + tools. Hit → instant reply, original tier preserved.</small></div></div>
+      <div class="wire"></div>
+      <div class="node jev"><div class="n">03</div><div><b>JEV DECISION</b><small>jevmodel → typesafe → openrouter → local failover, circuit breakers. Returns <code>fast | balanced | powerful</code> + confidence.</small></div></div>
+      <div class="wire"></div>
+      <div class="node"><div class="n">04</div><div><b>POLICY ENGINE</b><small><code>tier ∩ route.allow</code> minus over-budget models. Your rules, your money.</small></div></div>
+      <div class="wire"></div>
+      <div class="node"><div class="n">05</div><div><b>MODEL SCORING</b><small><code>score = w·quality − w·cost − w·latency</code>, weighted by route priority.</small></div></div>
+      <div class="wire"></div>
+      <div class="node"><div class="n">06</div><div><b>DISPATCHER</b><small>Retries with backoff on 429/5xx only. Falls over to the next model, then the next tier.</small></div></div>
+      <div class="wire"></div>
+      <div class="node"><div class="n">07</div><div><b>PROVIDERS</b><small>OpenAI · Anthropic · Gemini · Groq · Ollama · Mock. BYOK, keys never leave the gateway.</small></div></div>
+      <div class="wire"></div>
+      <div class="node"><div class="n">08</div><div><b>TELEMETRY</b><small>Every request: tier, confidence, model, cost, latency split, fallback, cache. Always know why.</small></div></div>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="v">4</div><div class="l">jev endpoints</div></div>
+      <div class="stat"><div class="v">3</div><div class="l">routing tiers</div></div>
+      <div class="stat"><div class="v">8</div><div class="l">pipeline stages</div></div>
+      <div class="stat"><div class="v">$0</div><div class="l">to start</div></div>
+    </div>
+  </section>
+
+  <section id="api">
+    <div class="sec-label">// 04 — Interface</div>
+    <h2>Speak your protocol.</h2>
+    <p class="lede">Point any OpenAI-compatible client at the gateway, or embed the router in-process. Dry-run routing decisions for free before spending a token.</p>
+    <div class="cols">
+      <div class="card">
+        <h4>ENDPOINTS</h4>
+        <div class="ep"><span class="m">POST</span><span class="u">/v1/chat/completions</span><span class="d">model: "auto" routes via JEV · stream: true → SSE</span></div>
+        <div class="ep"><span class="m">POST</span><span class="u">/v1/messages</span><span class="d">Anthropic ingress for Claude Code + SDKs</span></div>
+        <div class="ep"><span class="m">POST</span><span class="u">/v1/routing/decision</span><span class="d">dry-run: tier + ranked candidates, zero LLM spend</span></div>
+        <div class="ep"><span class="m">GET</span><span class="u">/v1/models · /health · /ready · /v1/telemetry/recent</span><span class="d">discovery, probes, decision log</span></div>
+      </div>
+      <div class="card">
+        <h4>TELEMETRY FRAME</h4>
+        <pre class="json">{
+  <span class="k">"request_id"</span>: <span class="s">"req_82f91"</span>,
+  <span class="k">"jev"</span>: { <span class="k">"tier"</span>: <span class="s">"balanced"</span>,
+           <span class="k">"confidence"</span>: <span class="n">0.91</span> },
+  <span class="k">"selected"</span>: { <span class="k">"model"</span>: <span class="s">"gpt-mini"</span> },
+  <span class="k">"latency"</span>: { <span class="k">"router_ms"</span>: <span class="n">7</span>,
+              <span class="k">"provider_ms"</span>: <span class="n">840</span> },
+  <span class="k">"cost_usd"</span>: <span class="n">0.0018</span>,
+  <span class="k">"fallback"</span>: <span class="b">false</span>, <span class="k">"cached"</span>: <span class="b">false</span>
+}</pre>
+      </div>
+    </div>
+    <div class="cta" style="margin-top:40px">
+      <a class="btn btn-npm" href="https://www.npmjs.com/package/jevrouter-ai" target="_blank" rel="noopener">◆ GET IT ON NPM</a>
+      <a class="btn btn-gh" href="https://github.com/Abishek0070/JEV-model-router" target="_blank" rel="noopener">◇ STAR ON GITHUB</a>
+    </div>
+  </section>
+
+  <footer>
+    <p>jevrouter-ai · MIT license · JEV decides the tier, policy decides what's allowed, scoring picks the model.</p>
+    <div class="flinks">
+      <a href="https://www.npmjs.com/package/jevrouter-ai" target="_blank" rel="noopener">NPM</a>
+      <a href="https://github.com/Abishek0070/JEV-model-router" target="_blank" rel="noopener">GITHUB</a>
+    </div>
+  </footer>
+</div>
+
+<script>
+  // copy buttons
+  document.querySelectorAll('.copy').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var cmd = btn.getAttribute('data-cmd') || '';
+      function done(ok) {
+        btn.textContent = ok ? 'COPIED' : 'FAILED';
+        setTimeout(function () { btn.textContent = 'COPY'; }, 1400);
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(cmd).then(function () { done(true); }, function () { done(false); });
+      } else {
+        var ta = document.createElement('textarea');
+        ta.value = cmd; document.body.appendChild(ta); ta.select();
+        try { done(document.execCommand('copy')); } catch (e) { done(false); }
+        document.body.removeChild(ta);
+      }
+    });
+  });
+  // staggered scroll reveals
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e, i) {
+      if (e.isIntersecting) {
+        setTimeout(function () { e.target.classList.add('on'); }, (i % 4) * 90);
+        io.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.reveal').forEach(function (el) { io.observe(el); });
+  document.querySelectorAll('.tier, .node').forEach(function (el) { el.classList.add('reveal'); io.observe(el); });
+</script>
+</body>
+</html>
