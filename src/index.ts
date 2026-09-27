@@ -5,6 +5,7 @@ import { buildProviders } from "./providers/registry.js";
 import { OpenAICompatibleProvider } from "./providers/openaiCompatible.js";
 import { scoreCandidates } from "./scoring/scorer.js";
 import { JevRouter } from "./jev/index.js";
+import { loadDotEnv } from "./dotenv.js";
 import { costOf, planFor, routeFor, runPipeline, type PipelineResult } from "./router/pipeline.js";
 import type { AppConfig, ChatRequest } from "./types.js";
 
@@ -31,13 +32,19 @@ export type RouterChatResult = {
   warnings: string[];
 };
 
-export async function createRouter(opts?: { configPath?: string }): Promise<{
+export async function createRouter(opts?: { configPath?: string; env?: Record<string, string | undefined> }): Promise<{
   config: AppConfig;
   chat: (input: RouterChatInput) => Promise<RouterChatResult>;
   stream: (input: RouterChatInput) => AsyncGenerator<string, RouterChatResult, void>;
   decide: (state: string, route?: string) => Promise<PipelineResult>;
 }> {
   if (opts?.configPath) process.env.CONFIG_PATH = opts.configPath;
+  loadDotEnv();
+  if (opts?.env) {
+    for (const [k, v] of Object.entries(opts.env)) {
+      if (v !== undefined) process.env[k] = String(v);
+    }
+  }
   const cfg = loadConfig();
   const jev = new JevRouter(cfg);
   const providers = buildProviders();

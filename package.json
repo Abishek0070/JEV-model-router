@@ -1,20 +1,47 @@
 {
-  "name": "jev-router",
-  "version": "0.1.0",
-  "description": "Open-source production JEV model router — JEV decides capability tier, policy + scoring choose the model.",
+  "name": "@abishek0070/jev-model-router",
+  "version": "0.2.0",
+  "description": "Open-source production JEV model router. JEV decides the capability tier (fast/balanced/powerful); policy + scoring choose the model. Use as a gateway or embed in-process.",
   "type": "commonjs",
   "license": "MIT",
+  "author": "Abishek0070",
+  "homepage": "https://github.com/Abishek0070/JEV-model-router",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Abishek0070/JEV-model-router.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Abishek0070/JEV-model-router/issues"
+  },
+  "keywords": ["llm", "router", "gateway", "jev", "model-routing", "openai", "anthropic", "ai-gateway"],
+  "engines": {
+    "node": ">=18"
+  },
   "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
   "exports": {
     ".": "./dist/src/index.js",
     "./server": "./dist/src/server.js"
+  },
+  "bin": {
+    "jev-model-router": "dist/src/cli.js"
+  },
+  "files": [
+    "dist",
+    "config.example.yaml",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
     "build": "tsc",
     "start": "node dist/src/server.js",
     "dev": "tsx watch src/server.ts",
     "eval": "tsx eval/calibrate.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "fastify": "^5.3.1",

@@ -11,9 +11,11 @@ import { scoreCandidates } from "./scoring/scorer.js";
 import { costOf, planFor, routeFor, runPipeline } from "./router/pipeline.js";
 import { emitTelemetry, logger, recentTelemetry } from "./telemetry/logger.js";
 import { JevRouter } from "./jev/index.js";
+import { loadDotEnv } from "./dotenv.js";
 import type { ChatRequest } from "./types.js";
 
 async function main(): Promise<void> {
+  loadDotEnv();
   const cfg = loadConfig();
   const jev = new JevRouter(cfg);
   const providers = buildProviders();

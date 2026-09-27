@@ -6,6 +6,16 @@ JEV never selects a provider or model directly — it returns a routing tier (`f
 
 ## Quick start
 
+**From npm (easiest):**
+
+```bash
+npx @abishek0070/jev-model-router init   # creates jev-router.config.yaml + .env, asks for JEV key
+# add one LLM key to .env, then:
+npx @abishek0070/jev-model-router start  # gateway on http://localhost:4000/v1
+```
+
+**From source:**
+
 ```bash
 npm install
 cp .env.example .env   # optional — dev works with zero keys
@@ -168,12 +178,18 @@ await client.messages.create({ model: "auto", max_tokens: 512, messages: [...] }
 
 **Option B — inside your app (in-process, Node.js).**
 
+```bash
+npm install @abishek0070/jev-model-router
+```
+
 No HTTP hop, no separate process. Same pipeline, shared exact cache. Your app owns auth/TLS/scaling.
 
 ```ts
-import { createRouter } from "jev-router";
+import { createRouter } from "@abishek0070/jev-model-router";
 
-const router = await createRouter(); // uses CONFIG_PATH or ./config.example.yaml
+const router = await createRouter({
+  env: { JEV_API_KEY: process.env.JEV_API_KEY }, // or rely on .env / shell env
+});
 
 const res = await router.chat({
   model: "auto",
