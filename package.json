@@ -1,5 +1,5 @@
 {
-  "name": "@abishek0070/jev-router",
+  "name": "jevrouter-ai",
   "version": "0.2.0",
   "description": "Open-source production JEV model router. JEV decides the capability tier (fast/balanced/powerful); policy + scoring choose the model. Use as a gateway or embed in-process.",
   "type": "commonjs",
@@ -24,6 +24,7 @@
     "./server": "./dist/src/server.js"
   },
   "bin": {
+    "jevrouter-ai": "dist/src/cli.js",
     "jev-router": "dist/src/cli.js",
     "jev-model-router": "dist/src/cli.js"
   },
