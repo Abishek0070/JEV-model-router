@@ -29,6 +29,7 @@ async function main(): Promise<void> {
       port: cfg.server.port,
       jev: {
         order: cfg.jev.order,
+        jevmodel_configured: Boolean(process.env.JEVMODEL_API_KEY || process.env.JEV_API_KEY),
         typesafe_configured: Boolean(process.env.JEV_TYPESAFE_API_KEY || process.env.JEV_API_KEY),
         openrouter_configured: Boolean(process.env.OPENROUTER_API_KEY),
         local_available: true,

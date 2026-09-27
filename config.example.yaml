@@ -86,8 +86,8 @@ routes:
     allowEscalation: true
 
 jev:
-  order: [typesafe, openrouter, local]
-  timeoutMs: 800
+  order: [jevmodel, typesafe, openrouter, local]
+  timeoutMs: 3000
   thresholds:
     auto: 0.85   # starting point only — tune via `npm run eval`
     review: 0.60 # starting point only

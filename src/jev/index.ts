@@ -1,5 +1,6 @@
 import type { AppConfig, JevDecision } from "../types.js";
 import { LocalJevProvider } from "./local.js";
+import { JevModelProvider } from "./jevmodel.js";
 import { OpenRouterJevProvider } from "./openrouter.js";
 import { TypeSafeJevProvider } from "./typesafe.js";
 import type { JevProvider } from "./types.js";
@@ -15,6 +16,7 @@ export class JevRouter {
   constructor(private cfg: AppConfig) {
     const timeout = cfg.jev.timeoutMs;
     this.providers = new Map<string, JevProvider>([
+      ["jevmodel", new JevModelProvider(process.env.JEVMODEL_API_KEY || process.env.JEV_API_KEY, process.env.JEVMODEL_URL, process.env.JEVMODEL_MODEL, timeout)],
       ["typesafe", new TypeSafeJevProvider(process.env.JEV_TYPESAFE_API_KEY || process.env.JEV_API_KEY, process.env.JEV_TYPESAFE_URL, process.env.JEV_TYPESAFE_MODEL, timeout)],
       ["openrouter", new OpenRouterJevProvider(process.env.OPENROUTER_API_KEY, process.env.OPENROUTER_BASE_URL, process.env.OPENROUTER_JEV_MODEL, timeout)],
       ["local", new LocalJevProvider()],

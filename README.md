@@ -63,7 +63,7 @@ No keys needed for dev — requests serve via `mock-echo` + local JEV heuristic.
                           ▼
                  ┌──────────────────┐
                  │       JEV        │  Tries jev.order in sequence:
-                 │  Routing Brain   │  typesafe (800ms timeout) → openrouter
+                 │  Routing Brain   │  jevmodel → typesafe → openrouter
                  │  (tier only)     │  → local heuristic (always available).
                  └────────┬─────────┘  Per-endpoint circuit breaker
                           │            (5 fails → 30s cooldown).

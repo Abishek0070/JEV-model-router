@@ -36,6 +36,7 @@ export async function runPipeline(
   }
   const state = chatReq.messages.map((m) => `${m.role}: ${m.content}`).join("\n").slice(0, 6000);
   const r = await jev.decide(state);
+  const policyEnd = performance.now();
   let tier = r.decision.tier;
   const effective = maybeEscalate(tier, r.decision.confidence, cfg.jev.thresholds.review, policy.allowEscalation !== false || !!r.decision.escalation);
   if (effective !== tier) tier = effective;
@@ -45,7 +46,7 @@ export async function runPipeline(
   return {
     tier, confidence: r.decision.confidence, probabilities: r.decision.probabilities,
     jevProviderUsed: r.providerUsed, jev_ms: r.latencyMs,
-    policy_ms: performance.now() - policy0, eligible, scored,
+    policy_ms: Math.max(0, performance.now() - policyEnd), eligible, scored,
   };
 }
 
