@@ -1,0 +1,112 @@
+# jev-router example config. JEV returns a TIER only — never a provider/model.
+# Change tiers/models/routes freely without touching JEV.
+
+server:
+  port: 4000
+
+tiers:
+  fast:
+    - groq-llama
+    - gemini-flash
+    - mock-echo
+  balanced:
+    - gpt-mini
+    - claude-haiku
+    - mock-echo
+  powerful:
+    - claude-sonnet
+    - gpt-reasoning
+    - mock-echo
+
+# Model registry: logical id -> upstream provider + cost/quality signals.
+# Costs in USD per 1M tokens. quality = estimated p_success (0-1). latency = p95 ms baseline.
+models:
+  groq-llama:
+    provider: groq
+    upstreamModel: llama-3.3-70b-versatile
+    inputCostPer1M: 0.59
+    outputCostPer1M: 0.79
+    quality: 0.72
+    latencyMs: 450
+  gemini-flash:
+    provider: gemini
+    upstreamModel: gemini-2.0-flash
+    inputCostPer1M: 0.35
+    outputCostPer1M: 1.05
+    quality: 0.74
+    latencyMs: 520
+  gpt-mini:
+    provider: openai
+    upstreamModel: gpt-4o-mini
+    inputCostPer1M: 0.15
+    outputCostPer1M: 0.60
+    quality: 0.82
+    latencyMs: 700
+  claude-haiku:
+    provider: anthropic
+    upstreamModel: claude-3-5-haiku-20241022
+    inputCostPer1M: 0.80
+    outputCostPer1M: 4.00
+    quality: 0.84
+    latencyMs: 750
+  claude-sonnet:
+    provider: anthropic
+    upstreamModel: claude-sonnet-4-20250514
+    inputCostPer1M: 3.00
+    outputCostPer1M: 15.00
+    quality: 0.95
+    latencyMs: 1400
+  gpt-reasoning:
+    provider: openai
+    upstreamModel: o4-mini
+    inputCostPer1M: 1.10
+    outputCostPer1M: 4.40
+    quality: 0.94
+    latencyMs: 2200
+  mock-echo:
+    provider: mock
+    upstreamModel: mock-echo
+    inputCostPer1M: 0
+    outputCostPer1M: 0
+    quality: 0.5
+    latencyMs: 5
+
+routes:
+  chat.default:
+    priority: cost # cost | latency | quality
+    allow:
+      - groq-llama
+      - gpt-mini
+      - claude-haiku
+      - claude-sonnet
+      - gpt-reasoning
+      - mock-echo
+    max_cost_usd: 0.01
+    # If true, allow escalating one tier up when JEV confidence < review threshold
+    allowEscalation: true
+
+jev:
+  order: [typesafe, openrouter, local]
+  timeoutMs: 800
+  thresholds:
+    auto: 0.85   # starting point only — tune via `npm run eval`
+    review: 0.60 # starting point only
+  breaker:
+    tripAfterFails: 5
+    cooldownMs: 30000
+
+cache:
+  exact:
+    enabled: true
+    ttlMs: 3600000
+  semantic:
+    enabled: false # optional module; see src/cache/semantic/
+    threshold: 0.92
+    embedding:
+      provider: local
+      model: local-tfidf-1
+
+dispatcher:
+  perAttemptTimeoutMs: 30000
+  maxAttemptsPerModel: 2
+  backoffMs: [100, 300]

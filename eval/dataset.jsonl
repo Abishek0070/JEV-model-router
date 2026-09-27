@@ -1,0 +1,12 @@
+{"state": "hi", "expected_tier": "fast"}
+{"state": "What is 2+2?", "expected_tier": "fast"}
+{"state": "Summarize this paragraph in one sentence: The cat sat on the mat.", "expected_tier": "fast"}
+{"state": "Explain this Kubernetes error: CrashLoopBackOff on api-server pod, logs show OOMKilled", "expected_tier": "balanced"}
+{"state": "Debug this stack trace: NullPointerException at auth middleware line 82 when JWT is expired", "expected_tier": "balanced"}
+{"state": "Refactor this Express API into clean controllers with validation", "expected_tier": "balanced"}
+{"state": "Prove that Raft guarantees leader completeness under partial synchrony", "expected_tier": "powerful"}
+{"state": "Production is down, prod returns 500s on checkout, deploy failed twice. P0, need immediate plan.", "expected_tier": "powerful"}
+{"state": "Design a multi-region distributed consensus migration with zero downtime and formal correctness argument", "expected_tier": "powerful"}
+{"state": "Thanks!", "expected_tier": "fast"}
+{"state": "Write a SQL query to find duplicate users by email keeping the newest", "expected_tier": "balanced"}
+{"state": "Review this Dockerfile for security issues and suggest fixes", "expected_tier": "balanced"}

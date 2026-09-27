@@ -1,0 +1,18 @@
+services:
+  app:
+    build: .
+    ports:
+      - "4000:4000"
+    env_file:
+      - .env
+    environment:
+      PORT: 4000
+      CONFIG_PATH: ./config.example.yaml
+    volumes:
+      - ./config.example.yaml:/app/config.example.yaml:ro
+    command: node dist/src/server.js
+
+  # Optional future modules (not required for v0.1):
+  # redis:
+  #   image: redis:7-alpine
+  #   ports: ["6379:6379"]

@@ -1,0 +1,30 @@
+{
+  "name": "jev-router",
+  "version": "0.1.0",
+  "description": "Open-source production JEV model router — JEV decides capability tier, policy + scoring choose the model.",
+  "type": "commonjs",
+  "license": "MIT",
+  "main": "dist/src/index.js",
+  "exports": {
+    ".": "./dist/src/index.js",
+    "./server": "./dist/src/server.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/src/server.js",
+    "dev": "tsx watch src/server.ts",
+    "eval": "tsx eval/calibrate.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "fastify": "^5.3.1",
+    "@fastify/cors": "^10.0.1",
+    "yaml": "^2.7.0",
+    "pino": "^9.6.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3",
+    "@types/node": "^22.7.4",
+    "tsx": "^4.19.1"
+  }
+}
