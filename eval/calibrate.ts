@@ -23,7 +23,7 @@ for (const r of rows) {
   console.log(`${ok ? "OK  " : "MISS"} expected=${r.expected_tier} got=${d.tier} conf=${d.confidence.toFixed(2)} :: ${r.state.slice(0, 70)}`);
 }
 console.log(`\naccuracy: ${correct}/${rows.length} = ${(correct / rows.length).toFixed(2)}`);
-console.log(`config thresholds: auto=${cfg.jev.thresholds.auto} review=${cfg.jev.thresholds.review} (starting points, not calibrated claims)`);
+console.log(`config thresholds: review=${cfg.jev.thresholds.review} (starting point, not a calibrated claim)`);
 for (const [b, v] of Object.entries(buckets).sort()) {
   console.log(`${b} -> observed accuracy ${(v.correct / v.total).toFixed(2)} (n=${v.total}, mean_conf=${(v.confSum / v.total).toFixed(2)})`);
 }

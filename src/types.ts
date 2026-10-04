@@ -49,16 +49,11 @@ export type AppConfig = {
   jev: {
     order: string[];
     timeoutMs: number;
-    thresholds: { auto: number; review: number };
+    thresholds: { review: number };
     breaker: { tripAfterFails: number; cooldownMs: number };
   };
   cache: {
     exact: { enabled: boolean; ttlMs: number };
-    semantic: {
-      enabled: boolean;
-      threshold: number;
-      embedding: { provider: string; model: string };
-    };
   };
   dispatcher: { perAttemptTimeoutMs: number; maxAttemptsPerModel: number; backoffMs: number[] };
 };

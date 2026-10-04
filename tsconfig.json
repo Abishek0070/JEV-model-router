@@ -11,8 +11,6 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "declaration": true,
-    "declarationMap": false,
-    "declaration": false,
     "sourceMap": false
   },
   "include": ["src/**/*", "eval/**/*"]

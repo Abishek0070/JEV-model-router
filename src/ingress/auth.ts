@@ -10,9 +10,8 @@ export function checkAuth(header: string | undefined): boolean {
   return keys.includes(token);
 }
 
-// Minimal in-memory quota: 60 req/min + $1/day per key (or per IP when open).
+// Minimal in-memory quota: 60 req/min per key (or per IP when open).
 const hits = new Map<string, number[]>();
-const spend = new Map<string, { day: string; usd: number }>();
 
 export function checkQuota(id: string): boolean {
   const now = Date.now();
@@ -20,11 +19,4 @@ export function checkQuota(id: string): boolean {
   arr.push(now);
   hits.set(id, arr);
   return arr.length <= 60;
-}
-
-export function addSpend(id: string, usd: number): void {
-  const day = new Date().toISOString().slice(0, 10);
-  const cur = spend.get(id);
-  if (!cur || cur.day !== day) spend.set(id, { day, usd });
-  else cur.usd += usd;
 }

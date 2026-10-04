@@ -1,18 +1,5 @@
-import type { JevDecision, Tier } from "../types.js";
-import { clampConfidence, type JevProvider } from "./types.js";
-
-function withTimeout(ms: number): { signal: AbortSignal; done: () => void } {
-  const c = new AbortController();
-  const t = setTimeout(() => c.abort(), ms);
-  return { signal: c.signal, done: () => clearTimeout(t) };
-}
-
-function toTier(choice: string): Tier {
-  const v = choice.toLowerCase();
-  if (v.includes("power")) return "powerful";
-  if (v.includes("balanc")) return "balanced";
-  return "fast";
-}
+import type { JevDecision } from "../types.js";
+import { clampConfidence, toTier, withTimeout, type JevProvider } from "./types.js";
 
 // Hosted Jev decision API at jevmodel.org (see https://jevmodel.org/docs/).
 // Same SystemOne wire shape: POST /v1/systemone with Bearer key,

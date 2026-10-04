@@ -97,7 +97,7 @@ No keys needed for dev — requests serve via `mock-echo` + local JEV heuristic.
                           │         or SSE stream (OpenAI-compatible
                           ▼         providers stream; others emit one chunk)
                  ┌──────────────────┐
-                 │    Telemetry     │  Structured JSON per request + pino log.
+                 │    Telemetry     │  Structured JSON per request + stdout log.
                  │                  │  GET /v1/telemetry/recent (last 100).
                  └──────────────────┘
 ```
@@ -146,21 +146,18 @@ routes: { chat.default: { priority: cost, allow: [...], max_cost_usd: 0.01 } }
 jev:
   order: [typesafe, openrouter, local]
   timeoutMs: 800
-  thresholds: { auto: 0.85, review: 0.60 }  # starting points — tune via eval
+  thresholds: { review: 0.60 }  # starting point — tune via eval
 cache:
   exact: { enabled: true, ttlMs: 3600000 }
-  semantic: { enabled: false, threshold: 0.92, embedding: { provider: local } }
 dispatcher: { perAttemptTimeoutMs: 30000, maxAttemptsPerModel: 2, backoffMs: [100, 300] }
 ```
 
-`jev.thresholds` are starting points only, not calibrated claims. Measure and tune:
+`jev.thresholds.review` is a starting point only, not a calibrated claim. Measure and tune:
 
 ```bash
 npm run eval
 # accuracy + confidence bucket -> observed accuracy, e.g. 0.80-0.90 -> 0.75
 ```
-
-Semantic caching is an optional module (`src/cache/semantic/embedding.ts` with `LocalEmbeddingProvider` default, `OpenAIEmbeddingProvider` available). Enable it without changing core routing; the default local embedding costs nothing.
 
 ## Plug into any app
 
@@ -229,14 +226,14 @@ src/
   index.ts                   # In-process library: createRouter() -> { chat, stream, decide }
   router/pipeline.ts         # Shared core: runPipeline, planFor, costOf, routeFor
   config.ts / types.ts
-  jev/                       # typesafe.ts, openrouter.ts, local.ts, index.ts (failover+breaker)
+  jev/                       # jevmodel.ts, typesafe.ts, openrouter.ts, local.ts, index.ts (failover+breaker)
   policy/engine.ts           # tier ∩ allow, cost gate, escalation
   scoring/scorer.ts          # quality/cost/latency scoring
   providers/                 # base.ts, openaiCompatible.ts (+stream), native.ts, registry.ts
   dispatcher/index.ts        # retries + cross-model / cross-tier fallback
-  cache/                     # exact.ts, semantic/embedding.ts (optional)
+  cache/                     # exact.ts (SHA-256 exact-match)
   ingress/auth.ts            # gateway keys + in-memory quota
-  telemetry/logger.ts        # pino JSON log + recent buffer
+  telemetry/logger.ts        # JSON log + recent buffer
 eval/
   dataset.jsonl / calibrate.ts  # accuracy + confidence-bucket calibration
 config.example.yaml  Dockerfile  docker-compose.yml

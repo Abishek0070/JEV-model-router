@@ -24,9 +24,7 @@
     "./server": "./dist/src/server.js"
   },
   "bin": {
-    "jevrouter-ai": "dist/src/cli.js",
-    "jev-router": "dist/src/cli.js",
-    "jev-model-router": "dist/src/cli.js"
+    "jevrouter-ai": "dist/src/cli.js"
   },
   "files": [
     "dist",
@@ -48,8 +46,7 @@
   "dependencies": {
     "fastify": "^5.3.1",
     "@fastify/cors": "^10.0.1",
-    "yaml": "^2.7.0",
-    "pino": "^9.6.0"
+    "yaml": "^2.7.0"
   },
   "devDependencies": {
     "typescript": "^5.6.3",

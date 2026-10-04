@@ -89,7 +89,6 @@ jev:
   order: [jevmodel, typesafe, openrouter, local]
   timeoutMs: 3000
   thresholds:
-    auto: 0.85   # starting point only — tune via `npm run eval`
     review: 0.60 # starting point only
   breaker:
     tripAfterFails: 5
@@ -99,12 +98,6 @@ cache:
   exact:
     enabled: true
     ttlMs: 3600000
-  semantic:
-    enabled: false # optional module; see src/cache/semantic/
-    threshold: 0.92
-    embedding:
-      provider: local
-      model: local-tfidf-1
 
 dispatcher:
   perAttemptTimeoutMs: 30000

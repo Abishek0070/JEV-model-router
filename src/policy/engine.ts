@@ -1,5 +1,4 @@
 import type { AppConfig, Tier } from "../types.js";
-import { tierOrder } from "../jev/types.js";
 
 // Policy engine: tier ∩ route.allow, minus over-budget models.
 // JEV is never consulted here — it only supplied the tier upstream.
@@ -23,8 +22,4 @@ export function maybeEscalate(tier: Tier, confidence: number, reviewThreshold: n
   if (tier === "fast") return "balanced";
   if (tier === "balanced") return "powerful";
   return tier;
-}
-
-export function tierRank(t: Tier): number {
-  return tierOrder(t);
 }

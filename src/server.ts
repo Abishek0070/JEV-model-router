@@ -4,7 +4,7 @@ import crypto from "node:crypto";
 import { loadConfig } from "./config.js";
 import { exactGet, exactKey, exactSet } from "./cache/exact.js";
 import { dispatch } from "./dispatcher/index.js";
-import { addSpend, checkAuth, checkQuota } from "./ingress/auth.js";
+import { checkAuth, checkQuota } from "./ingress/auth.js";
 import { buildProviders } from "./providers/registry.js";
 import { OpenAICompatibleProvider } from "./providers/openaiCompatible.js";
 import { scoreCandidates } from "./scoring/scorer.js";
@@ -42,7 +42,6 @@ async function main(): Promise<void> {
         ollama: process.env.OLLAMA_BASE_URL || "http://localhost:11434/v1",
         mock: true,
       },
-      semantic_cache: cfg.cache.semantic.enabled,
     },
     "jev-router config report",
   );
@@ -161,7 +160,6 @@ async function main(): Promise<void> {
       reply.raw.end();
       const m = cfg.models[selected.modelId];
       const cost_usd = m ? costOf(cfg, selected.modelId, inT, outT) : 0;
-      if (m) addSpend(quotaId, cost_usd);
       const total_ms = performance.now() - total0;
       finish({
         request_id, route,
@@ -215,7 +213,6 @@ async function main(): Promise<void> {
       }
 
       const cost_usd = costOf(cfg, d.model, d.result.inputTokens, d.result.outputTokens);
-      addSpend(quotaId, cost_usd);
       if (cfg.cache.exact.enabled) exactSet(key, { ...d.result, provider: d.provider, model: d.model, tier: pipe.tier, confidence: pipe.confidence }, cfg.cache.exact.ttlMs);
 
       const total_ms = performance.now() - total0;

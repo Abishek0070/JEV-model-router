@@ -9,6 +9,15 @@ export function clampConfidence(x: number): number {
   return Math.max(0, Math.min(1, x));
 }
 
-export function tierOrder(t: Tier): number {
-  return t === "fast" ? 0 : t === "balanced" ? 1 : 2;
+export function toTier(choice: string): Tier {
+  const v = choice.toLowerCase();
+  if (v.includes("power")) return "powerful";
+  if (v.includes("balanc")) return "balanced";
+  return "fast";
+}
+
+export function withTimeout(ms: number): { signal: AbortSignal; done: () => void } {
+  const c = new AbortController();
+  const t = setTimeout(() => c.abort(), ms);
+  return { signal: c.signal, done: () => clearTimeout(t) };
 }

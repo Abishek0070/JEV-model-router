@@ -4,7 +4,6 @@ COPY package.json package-lock.json* ./
 RUN npm install
 COPY tsconfig.json ./
 COPY src ./src
-COPY eval ./eval
 RUN npm run build
 
 FROM node:22-alpine AS runtime

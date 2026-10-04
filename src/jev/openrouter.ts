@@ -1,12 +1,5 @@
 import type { JevDecision } from "../types.js";
-import type { JevProvider } from "./types.js";
-import { clampConfidence } from "./types.js";
-
-function withTimeout(ms: number): { signal: AbortSignal; done: () => void } {
-  const c = new AbortController();
-  const t = setTimeout(() => c.abort(), ms);
-  return { signal: c.signal, done: () => clearTimeout(t) };
-}
+import { clampConfidence, withTimeout, type JevProvider } from "./types.js";
 
 // Jev via OpenRouter (hosts typesafe/jev snapshots). Best-effort adapter:
 // asks for strict JSON {tier, confidence} and parses it.

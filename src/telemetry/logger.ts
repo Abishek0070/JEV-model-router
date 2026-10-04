@@ -1,9 +1,18 @@
-import pino from "pino";
 import type { TelemetryEvent } from "../types.js";
 
-export const logger = pino({
-  level: process.env.LOG_LEVEL || "info",
-});
+const LEVEL = process.env.LOG_LEVEL || "info";
+const debug = LEVEL === "debug";
+
+export const logger = {
+  info: (obj: unknown, msg?: string): void => {
+    if (msg !== undefined) console.log(JSON.stringify({ level: "info", msg, ...((obj as Record<string, unknown>) || {}) }));
+    else console.log(JSON.stringify(obj));
+  },
+  error: (e: unknown): void => console.error(e instanceof Error ? (e.stack || e.message) : e),
+  debug: (...args: unknown[]): void => {
+    if (debug) console.debug(...args);
+  },
+};
 
 const recent: TelemetryEvent[] = [];
 
